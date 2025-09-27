@@ -1,4 +1,4 @@
-package com.jobchaintechnicaltestrn
+package com.shelltechnicaltestrn
 import android.os.Bundle;
 
 import com.facebook.react.ReactActivity

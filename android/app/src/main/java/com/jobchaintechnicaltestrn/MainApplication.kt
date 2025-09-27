@@ -1,4 +1,4 @@
-package com.jobchaintechnicaltestrn
+package com.shelltechnicaltestrn
 
 import android.app.Application
 import com.facebook.react.PackageList

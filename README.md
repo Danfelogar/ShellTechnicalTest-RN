@@ -23,5 +23,5 @@ To add your own features, just install new packages and start coding!
 
 ## how install vector-icons in react-native with ios
 ```ts
-npx rnvi-update-plist package.json ios/JobchainTechnicalTestRN(AppName)/Info.plist
+npx rnvi-update-plist package.json ios/ShellTechnicalTestRN(AppName)/Info.plist
 ```
