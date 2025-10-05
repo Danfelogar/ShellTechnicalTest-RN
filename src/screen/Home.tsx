@@ -1,10 +1,12 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 import { StackScreenProps } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
 import { Feather } from '@react-native-vector-icons/feather';
 
 import { ButtonGeneric, StandardWrapper } from '../components';
 import { RootStackMainParams } from '../types';
+import WebViewReactNative from '../components/WebViewNativeComponent';
+import { isIOS } from '../utils';
 
 type NavigationProp = StackScreenProps<RootStackMainParams, 'Home'>;
 
@@ -29,6 +31,20 @@ export const Home = () => {
           textContent={<Text style={styles.buttonText}>Go to the Details</Text>}
         />
       </View>
+      {!isIOS() && (
+        <View style={{ flex: 1 }}>
+          <WebViewReactNative
+            sourceURL="https://react.dev/"
+            style={{
+              width: '100%',
+              height: '100%',
+            }}
+            onScriptLoaded={() => {
+              Alert.alert('Page Loaded');
+            }}
+          />
+        </View>
+      )}
     </StandardWrapper>
   );
 };

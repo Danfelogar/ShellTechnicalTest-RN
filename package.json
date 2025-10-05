@@ -11,6 +11,19 @@
     "android-clean": "cd android && ./gradlew clean",
     "test": "jest"
   },
+  "codegenConfig": {
+    "name": "AppSpec",
+    "type": "components",
+    "jsSrcsDir": "./src/components",
+    "android": {
+      "javaPackageName": "com.webview"
+    },
+    "ios": {
+      "componentProvider": {
+        "CustomWebView": "RCTWebView"
+      }
+    }
+  },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
     "@react-native-masked-view/masked-view": "^0.3.2",
