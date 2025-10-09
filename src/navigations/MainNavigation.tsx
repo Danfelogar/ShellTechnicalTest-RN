@@ -10,6 +10,7 @@ export const NavigationMain = () => {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
+        detachPreviousScreen: false,
       }}
     >
       <Stack.Screen name="Home" component={Home} />

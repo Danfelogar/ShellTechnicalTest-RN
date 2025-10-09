@@ -9,25 +9,38 @@ import com.facebook.react.uimanager.ViewManager
 
 class ReactWebViewPackage : BaseReactPackage() {
   override fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<*, *>> {
-    return listOf(ReactWebViewManager(reactContext))
+    return listOf(
+      ReactWebViewManager(reactContext),
+      ComposeFormManager(reactContext)
+    )
   }
 
   override fun getModule(s: String, reactApplicationContext: ReactApplicationContext): NativeModule? {
-    when (s) {
+    return when (s) {
       ReactWebViewManager.REACT_CLASS -> ReactWebViewManager(reactApplicationContext)
+      ComposeFormManager.REACT_CLASS -> ComposeFormManager(reactApplicationContext)
+      else -> null
     }
-    return null
   }
 
   override fun getReactModuleInfoProvider(): ReactModuleInfoProvider = ReactModuleInfoProvider {
-    mapOf(ReactWebViewManager.REACT_CLASS to ReactModuleInfo(
-      name = ReactWebViewManager.REACT_CLASS,
-      className = ReactWebViewManager.REACT_CLASS,
-      canOverrideExistingModule = false,
-      needsEagerInit = false,
-      isCxxModule = false,
-      isTurboModule = true,
-    )
+    mapOf(
+      ReactWebViewManager.REACT_CLASS to ReactModuleInfo(
+        name = ReactWebViewManager.REACT_CLASS,
+        className = ReactWebViewManager.REACT_CLASS,
+        canOverrideExistingModule = false,
+        needsEagerInit = false,
+        isCxxModule = false,
+        isTurboModule = true,
+      ),
+      ComposeFormManager.REACT_CLASS to ReactModuleInfo(
+        name = ComposeFormManager.REACT_CLASS,
+        className = ComposeFormManager.REACT_CLASS,
+        canOverrideExistingModule = false,
+        needsEagerInit = false,
+        isCxxModule = false,
+        isTurboModule = true,
+      )
     )
   }
 }

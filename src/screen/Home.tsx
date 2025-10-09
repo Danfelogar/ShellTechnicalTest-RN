@@ -6,18 +6,30 @@ import { Feather } from '@react-native-vector-icons/feather';
 import { ButtonGeneric, StandardWrapper } from '../components';
 import { RootStackMainParams } from '../types';
 import WebViewReactNative from '../components/WebViewNativeComponent';
+import ComposeForm from '../components/ComposeFormNativeComponent';
 import { isIOS } from '../utils';
+import { useState } from 'react';
 
 type NavigationProp = StackScreenProps<RootStackMainParams, 'Home'>;
 
 export const Home = () => {
-  const { container } = styles;
+  const { container, composeForm } = styles;
   const navigation = useNavigation<NavigationProp['navigation']>();
+  const [formValue, setFormValue] = useState<string>('');
 
   const handlePress = () => {
     navigation.navigate('Details', {
       id: '123',
     });
+  };
+
+  const handleFormSubmit = (event: { nativeEvent: { value: string } }) => {
+    Alert.alert('Form Submitted', `Value: ${event.nativeEvent.value}`);
+  };
+
+  const handleTextChange = (event: { nativeEvent: { value: string } }) => {
+    setFormValue(event.nativeEvent.value);
+    console.log('Text changed:', event.nativeEvent.value);
   };
 
   return (
@@ -33,7 +45,7 @@ export const Home = () => {
       </View>
       {!isIOS() && (
         <View style={{ flex: 1 }}>
-          <WebViewReactNative
+          {/* <WebViewReactNative
             sourceURL="https://react.dev/"
             style={{
               width: '100%',
@@ -42,6 +54,15 @@ export const Home = () => {
             onScriptLoaded={() => {
               Alert.alert('Page Loaded');
             }}
+          /> */}
+          <ComposeForm
+            title="My form to Jetpack Compose"
+            placeholder="Type anything from Jetpack Compose"
+            buttonText="Send from Jetpack Compose"
+            initialValue={formValue}
+            onTextChange={handleTextChange}
+            onButtonPress={handleFormSubmit}
+            style={composeForm}
           />
         </View>
       )}
@@ -81,5 +102,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     marginLeft: 10,
+  },
+  composeForm: {
+    flex: 1,
   },
 });

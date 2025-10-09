@@ -9,5 +9,8 @@
     "/src/components/input",
     "/src/components",
     "/src/utils/validationsYup"
+  ],
+  "exportall.config.relExclusion": [
+    "/src/components/ComposeFormNativeComponent.ts"
   ]
 }
