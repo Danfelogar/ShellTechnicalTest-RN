@@ -1,0 +1,402 @@
+name: React Native CI/CD
+
+on:
+  push:
+    branches: [ feature-CI/CD, master ]
+  pull_request:
+    branches: [ feature-CI/CD, master ]
+
+env:
+  NODE_VERSION: '22.19.0'
+  PNPM_VERSION: '9.9.0'
+
+jobs:
+  test:
+    name: Run Tests and Lint
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'pnpm'
+    
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+    
+    - name: Install dependencies
+      run: pnpm install
+    
+    - name: Create .env file
+      run: |
+        echo "API_URL=${{ secrets.API_URL }}" > .env
+        echo "API_TOKEN=${{ secrets.API_TOKEN }}" >> .env
+        echo "Archivo .env creado:"
+        cat .env
+    
+    - name: Run tests
+      run: pnpm test
+    
+    - name: Run lint
+      run: pnpm lint
+
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'pnpm'
+    
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+    
+    - name: Install dependencies
+      run: pnpm install
+    
+    - name: Create .env file
+      run: |
+        echo "API_URL=${{ secrets.API_URL }}" > .env
+        echo "API_TOKEN=${{ secrets.API_TOKEN }}" >> .env
+    
+    - name: Setup JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+    
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+    
+    - name: Build Android Release APK
+      run: |
+        cd android
+        chmod +x ./gradlew
+        ./gradlew assembleRelease --no-daemon
+    
+    - name: List build outputs
+      run: |
+        find android/app/build/outputs -name "*.apk" -type f
+        echo "=== Contenido de outputs/apk ==="
+        ls -la android/app/build/outputs/apk/
+        echo "=== Contenido de outputs/bundle ==="
+        ls -la android/app/build/outputs/bundle/
+    
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: android-apk
+        path: |
+          android/app/build/outputs/apk/release/*.apk
+          android/app/build/outputs/bundle/release/*.aab
+        retention-days: 7
+
+  build-ios:
+    name: Build iOS IPA
+    runs-on: macos-15
+    needs: test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'pnpm'
+    
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        pnpm install
+        cd ios && pod install --repo-update && cd ..
+    
+    - name: Create .env file
+      run: |
+        echo "API_URL=${{ secrets.API_URL }}" > .env
+        echo "API_TOKEN=${{ secrets.API_TOKEN }}" >> .env
+    
+    - name: Setup Xcode 16.0
+      uses: actions/setup-xcode@v1
+      with:
+        xcode-version: '16.0'
+    
+    - name: Show Xcode info
+      run: |
+        xcodebuild -version
+        xcode-select -p
+    
+    - name: List iOS schemes
+      run: |
+        cd ios
+        xcodebuild -list
+    
+    - name: Build iOS for testing
+      run: |
+        cd ios
+        xcodebuild \
+          -workspace ShellTechnicalTestRN.xcworkspace \
+          -scheme ShellTechnicalTestRN \
+          -configuration Release \
+          -destination 'generic/platform=iOS' \
+          -archivePath ./build/ShellTechnicalTestRN.xcarchive \
+          archive \
+          CODE_SIGNING_ALLOWED=NO
+    
+    - name: Create IPA file
+      run: |
+        cd ios
+        xcodebuild \
+          -exportArchive \
+          -archivePath ./build/ShellTechnicalTestRN.xcarchive \
+          -exportOptionsPlist ../ExportOptions.plist \
+          -exportPath ./build \
+          -allowProvisioningUpdates \
+          CODE_SIGNING_ALLOWED=NO
+    
+    - name: List iOS build outputs
+      run: |
+        find ios/build -name "*.ipa" -type f
+        ls -la ios/build/
+    
+    - name: Upload IPA
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-ipa
+        path: ios/build/*.ipa
+        retention-days: 7
+  test:
+    name: Run Tests and Lint
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'pnpm'
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+
+    - name: Install dependencies
+      run: pnpm install
+
+    - name: Create .env file
+      run: |
+        echo "API_URL=https://api.example.org" > .env
+        echo "API_TOKEN=abc123" >> .env
+        echo "✅ Archivo .env creado:"
+        cat .env
+
+    - name: Run tests
+      run: pnpm test
+
+    - name: Run lint
+      run: pnpm lint
+
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'pnpm'
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+
+    - name: Install dependencies
+      run: pnpm install
+
+    - name: Create .env file
+      run: |
+        echo "API_URL=https://api.example.org" > .env
+        echo "API_TOKEN=abc123" >> .env
+
+    - name: Setup JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+    
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+    
+    - name: Build Android Release APK
+      run: |
+        cd android
+        chmod +x ./gradlew
+        ./gradlew clean
+        ./gradlew assembleRelease --no-daemon
+    
+    - name: List generated APKs
+      run: |
+        find android/app/build/outputs -name "*.apk" -type f
+        echo "📱 APKs generados:"
+        ls -la android/app/build/outputs/apk/release/
+    
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: android-release-apk
+        path: android/app/build/outputs/apk/release/app-release.apk
+        retention-days: 7
+
+  build-ios:
+    name: Build iOS IPA
+    runs-on: macos-latest
+    needs: test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'pnpm'
+    
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        pnpm install
+        cd ios && pod install --repo-update && cd ..
+    
+    - name: Create .env file
+      run: |
+        echo "API_URL=https://api.example.org" > .env
+        echo "API_TOKEN=abc123" >> .env
+    
+    - name: Setup Xcode 15.0
+      uses: actions/setup-xcode@v1
+      with:
+        xcode-version: '15.0'
+    
+    - name: List schemes
+      run: |
+        cd ios
+        xcodebuild -workspace ShellTechnicalTestRN.xcworkspace -list
+    
+    - name: Build iOS for simulator (TEST)
+      run: |
+        set -o pipefail && xcodebuild \
+          -workspace ios/ShellTechnicalTestRN.xcworkspace \
+          -scheme ShellTechnicalTestRN \
+          -configuration Debug \
+          -sdk iphonesimulator \
+          -derivedDataPath ios/build \
+          ONLY_ACTIVE_ARCH=YES \
+          build | xcpretty
+    
+    - name: Create Export Options Plist
+      run: |
+        cat > ios/ExportOptions.plist << EOF
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>method</key>
+            <string>development</string>
+            <key>teamID</key>
+            <string>${{ secrets.IOS_TEAM_ID }}</string>
+            <key>uploadBitcode</key>
+            <false/>
+            <key>compileBitcode</key>
+            <false/>
+        </dict>
+        </plist>
+        EOF
+    
+    - name: Archive iOS Project
+      run: |
+        set -o pipefail && xcodebuild \
+          -workspace ios/ShellTechnicalTestRN.xcworkspace \
+          -scheme ShellTechnicalTestRN \
+          -configuration Release \
+          -archivePath build/ShellTechnicalTestRN.xcarchive \
+          -allowProvisioningUpdates \
+          archive | xcpretty
+
+    - name: Export IPA
+      run: |
+        xcodebuild -exportArchive \
+          -archivePath build/ShellTechnicalTestRN.xcarchive \
+          -exportOptionsPlist ios/ExportOptions.plist \
+          -exportPath build \
+          -allowProvisioningUpdates
+
+    - name: List build artifacts
+      run: |
+        echo "📦 Archivos generados en build/:"
+        ls -la build/
+
+    - name: Upload IPA artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-release-ipa
+        path: build/ShellTechnicalTestRN.ipa
+        retention-days: 7
+
+  deploy-artifacts:
+    name: Deploy Artifacts
+    runs-on: ubuntu-latest
+    needs: [build-android, build-ios]
+    if: github.ref == 'refs/heads/feature-CI/CD' || github.ref == 'refs/heads/master'
+
+    steps:
+    - name: Download Android APK
+      uses: actions/download-artifact@v4
+      with:
+        name: android-release-apk
+
+    - name: Download iOS IPA
+      uses: actions/download-artifact@v4
+      with:
+        name: ios-release-ipa
+
+    - name: List final artifacts
+      run: |
+        echo "🎯 Artifacts listos para distribución:"
+        ls -la
+        echo "📱 APK size:" && du -h app-release.apk || echo "APK no encontrado"
+        echo "📱 IPA size:" && du -h ShellTechnicalTestRN.ipa || echo "IPA no encontrado"
