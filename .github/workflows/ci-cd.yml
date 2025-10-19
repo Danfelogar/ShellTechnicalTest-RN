@@ -123,7 +123,7 @@ jobs:
           cd ios
           xcodebuild -workspace ShellTechnicalTestRN.xcworkspace -list
 
-      - name: Build iOS for simulator (TEST)
+      - name: Build iOS for simulator (without signing)
         run: |
           xcodebuild \
             -workspace ios/ShellTechnicalTestRN.xcworkspace \
@@ -131,49 +131,20 @@ jobs:
             -configuration Debug \
             -sdk iphonesimulator \
             -derivedDataPath ios/build \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
             ONLY_ACTIVE_ARCH=YES \
             clean build
 
-      - name: Create Export Options Plist
+      - name: Create .app bundle from build
         run: |
-          cat > ios/ExportOptions.plist << 'EOF'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-              <key>method</key>
-              <string>development</string>
-              <key>signingStyle</key>
-              <string>automatic</string>
-              <key>stripSwiftSymbols</key>
-              <true/>
-              <key>uploadBitcode</key>
-              <false/>
-              <key>compileBitcode</key>
-              <false/>
-              <key>uploadSymbols</key>
-              <true/>
-          </dict>
-          </plist>
-          EOF
-
-      - name: Archive iOS Project
-        run: |
-          xcodebuild \
-            -workspace ios/ShellTechnicalTestRN.xcworkspace \
-            -scheme ShellTechnicalTestRN \
-            -configuration Release \
-            -archivePath build/ShellTechnicalTestRN.xcarchive \
-            -allowProvisioningUpdates \
-            clean archive
-
-      - name: Export IPA
-        run: |
-          xcodebuild -exportArchive \
-            -archivePath build/ShellTechnicalTestRN.xcarchive \
-            -exportOptionsPlist ios/ExportOptions.plist \
-            -exportPath build \
-            -allowProvisioningUpdates
+          mkdir -p build
+          cd ios/build/Build/Products/Debug-iphonesimulator
+          zip -r ../../../../../build/ShellTechnicalTestRN.app.zip ShellTechnicalTestRN.app
+          cd ../../../../../
+          echo "✅ .app bundle creado para simulador"
 
       - name: List build artifacts
         run: |
