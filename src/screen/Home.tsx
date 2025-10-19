@@ -1,14 +1,15 @@
 import { Alert, StyleSheet, Text, View } from 'react-native';
+import { Feather } from '@react-native-vector-icons/feather';
 import { StackScreenProps } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
-import { Feather } from '@react-native-vector-icons/feather';
+import { useState } from 'react';
 
-import { ButtonGeneric, StandardWrapper } from '../components';
-import { RootStackMainParams } from '../types';
 import WebViewReactNative from '../components/WebViewNativeComponent';
 import ComposeForm from '../components/ComposeFormNativeComponent';
+import { ButtonGeneric, StandardWrapper } from '../components';
+import { RootStackMainParams } from '../types';
+import { API_TOKEN, API_URL } from '@env';
 import { isIOS } from '../utils';
-import { useState } from 'react';
 
 type NavigationProp = StackScreenProps<RootStackMainParams, 'Home'>;
 
@@ -36,6 +37,8 @@ export const Home = () => {
     <StandardWrapper>
       <View style={container}>
         <Text style={styles.title}>Home</Text>
+        <Text>API_URL: {API_URL}</Text>
+        <Text>API_TOKEN: {API_TOKEN}</Text>
         <ButtonGeneric
           buttonStyle={styles.button}
           onPress={handlePress}
